@@ -153,7 +153,7 @@ We need to create two stores for our sample e-commerce application. After creati
 ```cpp
 CreateStoreOperation user_info_operation;
 user_info_operation.mutable_store_info()->set_store_name("UserInfo");
-
+        
 ColumnInfo* user_info_column1 = user_info_operation.add_column();
 user_info_column1->set_name("user_id");
 user_info_column1->set_primary_key(true);
@@ -167,7 +167,7 @@ user_info_column2->set_length(300);
 
 CreateStoreOperation create_orders_operation;
 create_orders_operation.mutable_store_info()->set_store_name("Orders");
-
+        
 ColumnInfo* orders_column1 = create_orders_operation.add_column();
 orders_column1->set_name("order_id");
 orders_column1->set_primary_key(true);
@@ -201,7 +201,7 @@ executor.execute(create_orders_operation, "orders_table_oper_id");
 
 //execute in bulk
 executor.execute({user_info_operation,create_orders_operation}, 
-"user_table_oper_id", "orders_table_oper_id");
+                "user_table_oper_id", "orders_table_oper_id");
 ```
 
 The application should also conform with the *ExecutorDelegate* protocol to receive callbacks from server by overriding the following function:
@@ -209,10 +209,10 @@ The application should also conform with the *ExecutorDelegate* protocol to rece
 ```cpp
 virtual void didReceiveResponse(Executor* executor, vector<Result*>& result)
 {
-if(result[0]->has_error_code())
-cout<<result[0]->error_description();
-else
-cout<<result[0]->transaction_identifier()<<" executed successfully";
+    if(result[0]->has_error_code())
+        cout<<result[0]->error_description();
+    else
+        cout<<result[0]->transaction_identifier()<<" executed successfully";
 }
 ```
 
@@ -243,7 +243,7 @@ Similarly, setup two *SetOperation* for two orders of the user.
 //Setup Order no 1
 SetOperation new_order_1;
 new_order_1.add_store_info()->set_store_name("Orders");
-
+        
 ColumnsValueBuilder order1PrimarykeyValueBuilder;
 order1PrimarykeyValueBuilder.addUInt32Column("order_id", 1, true);
 order1PrimarykeyValueBuilder.addUInt32Column("user_id", 1, true, true);
@@ -252,18 +252,18 @@ order1InfoValueBuilder.addFloatColumn("price", 101.45);
 
 ColumnsValueBuilder::SetPrimaryKeys(new_order_1, order1PrimarykeyValueBuilder.getColumns());
 ColumnsValueBuilder::SetValues(new_order_1, order1InfoValueBuilder.getColumns());
-
+                                
 //Setup Order no 2
 SetOperation new_order_2;
 new_order_2.add_store_info()->set_store_name("Orders");
-
+        
 ColumnsValueBuilder order2PrimarykeyValueBuilder;
 order2PrimarykeyValueBuilder.addUInt32Column("order_id", 2, true);
 order2PrimarykeyValueBuilder.addUInt32Column("user_id", 1,
-true, true);
+                                            true, true);
 ColumnsValueBuilder order2InfoValueBuilder;
 order2InfoValueBuilder.addFloatColumn("price", 200.0);
-
+        
 ColumnsValueBuilder::SetPrimaryKeys(new_order_2, order2PrimarykeyValueBuilder.getColumns());
 ColumnsValueBuilder::SetValues(new_order_2, order2InfoValueBuilder.getColumns());
 ```
@@ -291,7 +291,7 @@ storeInfo->set_store_name("UserInfo");
 
 ColumnsValueBuilder primarykeyValueBuilder;
 primarykeyValueBuilder.addUInt32Column("user_id", (uint32_t)1, true);
-
+        
 ColumnsValueBuilder::SetPrimaryKeys(getOperation, primarykeyValueBuilder.getColumns());                        
 ```
 
@@ -300,34 +300,34 @@ Values returned from VoloDB can be fetched in the callback.
 ```cpp
 virtual void didReceiveResponse(Executor* executor, vector<Result*>& result)
 {
-if(result[0]->has_error_code())
-cout<<result[0]->error_description();
-else
-{
-//fetching first result only in this case, system aggregates the
-//received responses from server and delivers them in one go
-Result* r = result[0];
+    if(result[0]->has_error_code())
+        cout<<result[0]->error_description();
+    else
+    {
+        //fetching first result only in this case, system aggregates the
+        //received responses from server and delivers them in one go
+        Result* r = result[0];
 
-//fetching only one result because transaction contains only 
-//one operation
-const OperationResult& operationResult = r->result(0);
+        //fetching only one result because transaction contains only 
+        //one operation
+        const OperationResult& operationResult = r->result(0);
 
-//fetching only one row because it was a primary key lookup
-const Row& row = operationResult.row(0);
-
-for(int k = 0; k < row.column_size(); k++)
-{
-const ColumnValue& columnValue = row.column(k);
-
-if(columnValue.name().compare("name") == 0)
-cout<<"User name"<<": "<<
-ColumnsValueDecoder::getVarChar(columnValue)<<endl;
-else if(columnValue.name().compare("user_id") == 0)
-cout<<"User ID"<<": "<<
-ColumnsValueDecoder::getUInt32(columnValue)<<endl;                
-
-}  
-}
+        //fetching only one row because it was a primary key lookup
+        const Row& row = operationResult.row(0);
+        
+        for(int k = 0; k < row.column_size(); k++)
+        {
+            const ColumnValue& columnValue = row.column(k);
+            
+            if(columnValue.name().compare("name") == 0)
+                cout<<"User name"<<": "<<
+                ColumnsValueDecoder::getVarChar(columnValue)<<endl;
+            else if(columnValue.name().compare("user_id") == 0)
+                cout<<"User ID"<<": "<<
+                ColumnsValueDecoder::getUInt32(columnValue)<<endl;                
+            
+        }  
+    }
 }
 ```
 ## Fetching Key Value Pairs using Partition Key (Prune Index Scan)
@@ -345,9 +345,9 @@ ColumnsValueBuilder primarykeyValueBuilder;
 //passing (true, true) because user_id column is a part of
 //primary and distribution key
 primarykeyValueBuilder.addUInt32Column("user_id", (uint32_t)1, true, true);
-
+        
 ColumnsValueBuilder::SetPrimaryKeys(pruneIndexOperation, primarykeyValueBuilder.getColumns());
-
+                                    
 //now execute it
 executor.execute(pruneIndexOperation, "prune_index_transaction_id");  
 ```
@@ -366,7 +366,7 @@ storeInfo->set_store_name("Orders");
 ColumnsValueBuilder valueBuilder;
 //not passing true flag, since it is not a primary or a distribution key
 valueBuilder.addFloatColumn("price", (float)200.0);
-
+        
 ColumnsValueBuilder::SetValues(scanOperation, valueBuilder.getColumns());                             
 //now execute it
 executor.execute(scanOperation, "scan_transaction_id");  
@@ -385,7 +385,7 @@ storeInfo->set_store_name("Orders");
 ColumnsValueBuilder primarykeyValueBuilder;
 primarykeyValueBuilder.addUInt32Column("order_id", (uint32_t)2, true);
 primarykeyValueBuilder.addUInt32Column("user_id", (uint32_t)1, true, true);        
-
+        
 ColumnsValueBuilder::SetPrimaryKeys(deleteOperation, primarykeyValueBuilder.getColumns());
 
 executor.execute(deleteOrderOperation, "my_transaction_id");
@@ -403,15 +403,3 @@ drop_orders_operation.mutable_store_info()->set_store_name("Orders");
 
 executor.execute({drop_user_operation,drop_orders_operation}, "user_table_oper_id", "orders_table_oper_id");
 ```
-
-# Measuring Throughput
-Here we will discuss how to run VoloDB server and the provided client with the source code to measure the throughput achieved.
-
-## Running Server in Throughput Mode
-VoloDB server can be run with *-p* flag to measure transaction per second throughput achieved. Note that it will show only the throughput achieved at this instance and not of the whole cluster.
-
-*./volodbserver -p -c \<path\_to\_config\_file\>*
-
-Running the instance in this way will print a statement every second to show current throughput in tps(transactions per second).
-
-##Running Test Client
